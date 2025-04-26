@@ -59,7 +59,7 @@ class AtomicRandomDuckBotFunction(AtomicBotFunctionABC):
     def _send_duck_images(self, message: types.Message, count=1, extension=None):
         images = self._get_random_duck_images(count, extension)
         if not images:
-            self.bot.send_message(message.chat.id, 
+            self.bot.send_message(message.chat.id,
                                   f"Не удалось получить {'изо-ние' if count == 1 else 'изо-ния'}.")
             return
         for img in images:
