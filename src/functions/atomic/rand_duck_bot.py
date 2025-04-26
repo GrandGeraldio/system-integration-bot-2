@@ -83,4 +83,3 @@ class AtomicRandomDuckBotFunction(AtomicBotFunctionABC):
             except (requests.exceptions.RequestException, ValueError) as ex:
                 logging.warning("Failed to fetch duck image: %s", ex)
         return images
-    
