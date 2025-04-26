@@ -1,4 +1,7 @@
-"""Модуль для реализации функции бота для получения случайных картинок уток."""
+"""
+ Модуль для реализации функции бота для получения случайных картинок уток.
+ Использует API RandomDuck.
+ """
 
 import logging
 import requests
@@ -7,13 +10,26 @@ from telebot import types
 from bot_func_abc import AtomicBotFunctionABC
 
 class AtomicRandomDuckBotFunction(AtomicBotFunctionABC):
+
+    """
+    Модуль для создания одной или нескольких картинок уток.
+    Также изображение с указанным расширением.
+    """
+
     commands = ["randomduck", "multiduck", "ducktype"]
     authors = ["GrandGeraldio"]
     about = "Генератор картинок уток!"
-    description = "Команды: /randomduck - одно изображение, /multiduck <1-7> - несколько, /ducktype <gif|jpg|jpeg|png> - по типу."
+    description = """Команды: /randomduck - одно изображение,
+                   /multiduck <1-7> - несколько,
+                   /ducktype <gif|jpg|jpeg|png> - по типу.
+                   """
     state = True
 
+    def __init__(self):
+        self.bot = None
+
     def set_handlers(self, bot: telebot.TeleBot):
+        """Set message handlers"""
         self.bot = bot
 
         @bot.message_handler(commands=self.commands)
@@ -43,30 +59,28 @@ class AtomicRandomDuckBotFunction(AtomicBotFunctionABC):
     def _send_duck_images(self, message: types.Message, count=1, extension=None):
         images = self._get_random_duck_images(count, extension)
         if not images:
-            self.bot.send_message(message.chat.id, f"Не удалось получить {'изображение' if count == 1 else 'изображения'}. Попробуйте снова!")
+            self.bot.send_message(message.chat.id, 
+                                  f"Не удалось получить {'изо-ние' if count == 1 else 'изо-ния'}.")
             return
         for img in images:
             self.bot.send_photo(message.chat.id, img)
 
     def _get_random_duck_images(self, count=1, extension=None):
         images = []
-        attempts = 0
-        max_attempts = count * 7
-        while len(images) < count and attempts < max_attempts:
+        for _ in range(count * 7):
+            if len(images) >= count:
+                break
             try:
                 response = requests.get("https://random-d.uk/api/v2/random", timeout=5)
                 response.raise_for_status()
                 img_url = response.json().get("url")
                 if not isinstance(img_url, str):
-                    attempts += 1
                     continue
                 if extension and not img_url.lower().endswith(f".{extension}"):
-                    attempts += 1
                     continue
                 if img_url and img_url not in images:
                     images.append(img_url)
-                attempts += 1
             except (requests.exceptions.RequestException, ValueError) as ex:
-                logging.exception(ex)
-                attempts += 1
+                logging.warning("Failed to fetch duck image: %s", ex)
         return images
+    
